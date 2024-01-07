@@ -235,6 +235,9 @@ function _Connect(): JSX.Element | null {
             );
 
             GLOBAL_STATE.setDevice(selectedBackend, device);
+
+            (window as any).device = device;
+            
         } catch (e: any) {
             GLOBAL_STATE.showErrorDialog(e);
             await dispose();

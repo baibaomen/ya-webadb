@@ -5,6 +5,7 @@ import {
     ConsumableWritableStream,
     DecodeUtf8Stream,
     GatherStringStream,
+    SplitStringStream,
     WritableStream,
 } from "@yume-chan/stream-extra";
 
@@ -349,5 +350,25 @@ export class Adb implements Closeable {
      */
     public async close(): Promise<void> {
         await this.dispatcher.close();
+    }
+    
+    public async runCommand(args: string[]) :Promise<string> {
+        if (!this.device) {
+            throw new Error('No device selected');
+        }
+
+        const { stdout } = await this.subprocess.spawn(args);
+    
+        let output = '';
+        await stdout
+            .pipeThrough(new DecodeUtf8Stream())
+            .pipeThrough(new SplitStringStream("\n"))
+            .pipeTo(new WritableStream({
+                write(chunk) {
+                    output += chunk + '\n';
+                }
+            }));
+    
+        return output;
     }
 }
